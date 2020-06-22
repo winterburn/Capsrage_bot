@@ -1,0 +1,8 @@
+{
+    "name": "CAPSRAGE",
+    "version": "0.0.1",
+    "description": "Discord bot for capsrage gaming server",
+    "main": "main.js",
+    "author": "Olli Helminen",
+    "dependencies": {}
+}
