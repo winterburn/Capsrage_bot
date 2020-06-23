@@ -88,6 +88,7 @@ function play(song) {
     if(!song){
         queue.voiceChannel.leave();
         queue.voiceChannel = null;
+        queue.playing = false;
         return;
     }
     const dispatcher = queue.connection.play(ytdl(song.url));
