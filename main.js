@@ -6,7 +6,7 @@ var ytdl = require('ytdl-core');
 const queue = {
     voiceChannel: null,
     songs: [],
-    volume: 5,
+    volume: config.volume,
     connection: null
 }
 
@@ -27,18 +27,35 @@ bot.on('message', async (message) => {
             if (!voiceChannel){
                 console.log(`User: ${message.member.user.username} not in voice channel`);
             }
+            queue.voiceChannel = voiceChannel;
             let songInfo = await ytdl.getInfo(user_config[message.member.user.id].song);
-            console.log(songInfo)
             let song = {
                 title: songInfo.title,
                 url: songInfo.video_url
             };
-            console.log(song)
             addSong(song, voiceChannel);
         break;
     }
 
 
+})
+
+bot.on('voiceStateUpdate', async (oldMember, newMember) => {
+    let newUserChannel = newMember.channel;
+    let oldUserChannel = oldMember.channel;
+    console.log(newUserChannel);
+    console.log(oldUserChannel);
+    if (newMember.member.user.bot) return;
+    if (oldUserChannel === null && newUserChannel !== null){
+            if (user_config[newMember.member.user.id].song === undefined) return;
+            queue.voiceChannel = newUserChannel;
+            let songInfo = await ytdl.getInfo(user_config[newMember.member.user.id].song);
+            let song = {
+                title: songInfo.title,
+                url: songInfo.video_url
+            };
+            addSong(song, newUserChannel);
+    }
 })
 
 async function addSong(song, channel) {
@@ -58,9 +75,9 @@ async function addSong(song, channel) {
 function play(song) {
     if(!song){
         queue.voiceChannel.leave();
+        queue.voiceChannel = null;
         return;
     }
-    console.log(song)
     const dispatcher = queue.connection
         .play(ytdl(song.url))
         .on("finish", () => {
