@@ -7,7 +7,8 @@ const queue = {
     voiceChannel: null,
     songs: [],
     volume: config.volume,
-    connection: null
+    connection: null,
+    playing: false
 }
 
 
@@ -40,16 +41,24 @@ bot.on('message', async (message) => {
 
 })
 
-bot.on('voiceStateUpdate', async (oldMember, newMember) => {
-    let newUserChannel = newMember.channel;
-    let oldUserChannel = oldMember.channel;
+bot.on('voiceStateUpdate', async (oldState, newState) => {
+    let newUserChannel = newState.channel;
+    let oldUserChannel = oldState.channel;
     console.log(newUserChannel);
     console.log(oldUserChannel);
-    if (newMember.member.user.bot) return;
+    if (newState.member.user.bot) return;
     if (oldUserChannel === null && newUserChannel !== null){
-            if (user_config[newMember.member.user.id].song === undefined) return;
+            if (user_config[newState.member.user.id] === undefined) {
+                let channel = newState.member.guild.channels.cache.find(ch => ch.name === 'bot_commands');
+                if (!channel) console.log("no channel bot_commands found!!!")
+                channel.send(`You dont have song yet, <@${newState.member.user.id}>`, {
+                    allowedMentions: {
+                        users: [newState.member.user.id]                    }
+                });
+                return;
+            }
             queue.voiceChannel = newUserChannel;
-            let songInfo = await ytdl.getInfo(user_config[newMember.member.user.id].song);
+            let songInfo = await ytdl.getInfo(user_config[newState.member.user.id].song);
             let song = {
                 title: songInfo.title,
                 url: songInfo.video_url
@@ -69,22 +78,25 @@ async function addSong(song, channel) {
             queue.songs = [];
         }
     }
-    play(queue.songs[0]);
+    if (!queue.playing){
+        play(queue.songs[0]);
+    }
 }
 
 function play(song) {
+    queue.playing = true;
     if(!song){
         queue.voiceChannel.leave();
         queue.voiceChannel = null;
         return;
     }
-    const dispatcher = queue.connection
-        .play(ytdl(song.url))
-        .on("finish", () => {
-            queue.songs.shift();
-            play(queue.songs[0]);
-        })
-        .on("error", error => console.error(error));
+    const dispatcher = queue.connection.play(ytdl(song.url));
+    dispatcher.on("finish", () => {
+        console.log("song finished!");
+        queue.songs.shift();
+        play(queue.songs[0]);
+    })
+    dispatcher.on("error", console.error);
     dispatcher.setVolumeLogarithmic(queue.volume / 5);
 }
 bot.login(config.token);
