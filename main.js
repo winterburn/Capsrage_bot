@@ -1,7 +1,8 @@
-var Discord = require('discord.js');
-var config = require('./config.json');
+const Discord = require('discord.js');
+const config = require('./config.json');
 var user_config = require('./user_configuration.json');
-var ytdl = require('ytdl-core');
+const ytdl = require('ytdl-core');
+const fs = require('fs');
 
 const queue = {
     voiceChannel: null,
@@ -23,18 +24,17 @@ bot.on('message', async (message) => {
     if(message.channel != 724741464604540959) return;
     let args = message.content.substring(1).split(' ');
     switch(args[0]) {
-        case 'testi':
-            const voiceChannel = message.member.voice.channel;
-            if (!voiceChannel){
-                console.log(`User: ${message.member.user.username} not in voice channel`);
+        case 'change_song':
+            if (!user_config[message.member.user.id]) user_config[message.member.user.id] = {'song': args[1]};
+            else {
+                user_config[message.member.user.id].song = args[1];
             }
-            queue.voiceChannel = voiceChannel;
-            let songInfo = await ytdl.getInfo(user_config[message.member.user.id].song);
-            let song = {
-                title: songInfo.title,
-                url: songInfo.video_url
-            };
-            addSong(song, voiceChannel);
+            fs.writeFile('./user_configuration.json', JSON.stringify(user_config), (err) => {
+                if(err){
+                    console.error(error);
+                }
+            })
+            message.channel.send(`Entry song changed succesfully for <@${message.member.user.id}>`);
         break;
     }
 
@@ -51,7 +51,7 @@ bot.on('voiceStateUpdate', async (oldState, newState) => {
             if (user_config[newState.member.user.id] === undefined) {
                 let channel = newState.member.guild.channels.cache.find(ch => ch.name === 'bot_commands');
                 if (!channel) console.log("no channel bot_commands found!!!")
-                channel.send(`You dont have song yet, <@${newState.member.user.id}>`, {
+                channel.send(`You dont have song yet, <@${newState.member.user.id}>. You can change it with -change_song <youtube_link>`, {
                     allowedMentions: {
                         users: [newState.member.user.id]                    }
                 });
@@ -92,10 +92,12 @@ function play(song) {
         return;
     }
     const dispatcher = queue.connection.play(ytdl(song.url));
-    dispatcher.on("finish", () => {
-        console.log("song finished!");
-        queue.songs.shift();
-        play(queue.songs[0]);
+    dispatcher.on("speaking", (speaking) => {
+        if(!speaking){
+            console.log("song finished!");
+            queue.songs.shift();
+            play(queue.songs[0]);
+        }
     })
     dispatcher.on("error", console.error);
     dispatcher.setVolumeLogarithmic(queue.volume / 5);
