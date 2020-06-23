@@ -16,7 +16,7 @@ bot.on('ready', () => {
     console.log('Connected');
 })
 
-bot.on('message', (message) => {
+bot.on('message', async (message) => {
     if(!message.content.startsWith(config.prefix)) return;
     if(message.author.bot) return;
     if(message.channel != 724741464604540959) return;
@@ -27,11 +27,13 @@ bot.on('message', (message) => {
             if (!voiceChannel){
                 console.log(`User: ${message.member.user.username} not in voice channel`);
             }
-            let songInfo = ytdl.getInfo(user_config[message.member.user.id].song);
+            let songInfo = await ytdl.getInfo(user_config[message.member.user.id].song);
+            console.log(songInfo)
             let song = {
                 title: songInfo.title,
                 url: songInfo.video_url
             };
+            console.log(song)
             addSong(song, voiceChannel);
         break;
     }
@@ -58,6 +60,7 @@ function play(song) {
         queue.voiceChannel.leave();
         return;
     }
+    console.log(song)
     const dispatcher = queue.connection
         .play(ytdl(song.url))
         .on("finish", () => {
