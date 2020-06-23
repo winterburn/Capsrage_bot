@@ -1,1 +1,3 @@
-auth.json
+config.json
+node_modules
+user_configuration.json

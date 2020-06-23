@@ -4,5 +4,20 @@
     "description": "Discord bot for capsrage gaming server",
     "main": "main.js",
     "author": "Olli Helminen",
-    "dependencies": {}
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/winterburn/Capsrage_bot"
+    },
+    "dependencies": {
+        "@discordjs/opus": "^0.3.2",
+        "bufferutil": "^4.0.1",
+        "discord.js": "^12.2.0",
+        "erlpack": "github:discordapp/erlpack",
+        "ffmpeg": "0.0.4",
+        "fluent-ffmpeg": "^2.1.2",
+        "utf-8-validate": "^5.0.2",
+        "ytdl-core": "^2.1.7",
+        "zlib-sync": "^0.1.7"
+    }
 }
