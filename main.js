@@ -44,8 +44,8 @@ bot.on('message', async (message) => {
 bot.on('voiceStateUpdate', async (oldState, newState) => {
     let newUserChannel = newState.channel;
     let oldUserChannel = oldState.channel;
-    console.log(newUserChannel);
-    console.log(oldUserChannel);
+    console.log(newState.member.user.username);
+    console.log(oldState.member.user.username);
     if (newState.member.user.bot) return;
     if (oldUserChannel === null && newUserChannel !== null){
             if (user_config[newState.member.user.id] === undefined) {
@@ -79,22 +79,24 @@ async function addSong(song, channel) {
         }
     }
     if (!queue.playing){
+        queue.playing = true;
         play(queue.songs[0]);
     }
 }
 
 function play(song) {
-    queue.playing = true;
     if(!song){
         queue.voiceChannel.leave();
         queue.voiceChannel = null;
         queue.playing = false;
+        queue.connection = null;
         return;
     }
+    console.log(`playing ${song.title}`);
     const dispatcher = queue.connection.play(ytdl(song.url));
     dispatcher.on("speaking", (speaking) => {
         if(!speaking){
-            console.log("song finished!");
+            console.log("queue finished!");
             queue.songs.shift();
             play(queue.songs[0]);
         }
