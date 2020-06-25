@@ -11,7 +11,8 @@ class Capsrage {
             songs: [],
             volume: config.volume,
             connection: null,
-            playing: false
+            playing: false,
+            interval: null
         }
         this.bot = new Discord.Client();
         this.createEventHandlers();
@@ -89,15 +90,22 @@ class Capsrage {
             this.queue.voiceChannel = null;
             this.queue.playing = false;
             this.queue.connection = null;
+            clearInterval(this.queue.interval);
             console.log('Queue finished');
             return;
         }
         console.log(`playing ${song.title}`);
         const dispatcher = this.queue.connection.play(ytdl(song.url, {filter: "audioonly"}));
+        this.queue.interval = setInterval(() => {
+            this.queue.songs.shift();
+            this.play(this.queue.songs[0]);
+
+        }, config.song_length);
         dispatcher.on("speaking", (speaking) => {
             if(!speaking){
                 console.log("song finished!");
                 this.queue.songs.shift();
+                clearInterval(this.queue.interval);
                 this.play(this.queue.songs[0]);
             }
         })
