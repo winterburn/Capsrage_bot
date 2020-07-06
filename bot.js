@@ -34,6 +34,16 @@ class Capsrage {
                     else {
                         user_config[message.member.user.id].song = args[1];
                     }
+                    // if there is start point defined in the link, set it to user config
+                    if(args[1].includes("t=")){
+                        let end_position = args[1].substring(args[1].search("t=")).search("&");
+                        if(end_position != -1){
+                            user_config[message.member.user.id].start = args[1].substring(args[1].search("t=") + 2,
+                                                                                          end_position);
+                        } else {
+                            user_config[message.member.user.id].start = args[1].substring(args[1].search("t=") + 2);
+                        }
+                    }
                     this.save_user_config();
                     message.channel.send(`Entry song changed succesfully for <@${message.member.user.id}>`);
                 break;
