@@ -37,6 +37,15 @@ class Capsrage {
                     this.save_user_config();
                     message.channel.send(`Entry song changed succesfully for <@${message.member.user.id}>`);
                 break;
+                case 'set_start':
+                  // Argument validity should probably be checked
+                  if (!user_config[message.member.user.id]) user_config[message.member.user.id] = {'start': args[1]};
+                  else {
+                      user_config[message.member.user.id].start = args[1];
+                  }
+                  this.save_user_config();
+                  message.channel.send(`<@${message.member.user.id}>'s entry song start point set to <${user_config[message.member.user.id].start}>`);
+                break;
             }
         
         
@@ -45,7 +54,7 @@ class Capsrage {
             if (newState.member.user.bot) return;
             if (oldState.channel === null && newState.channel !== null){
                     if (user_config[newState.member.user.id] === undefined) {
-                        user_config[newState.member.user.id] = {'song': null};
+                        user_config[newState.member.user.id] = {'song': null, 'start': '0s'};
                         this.save_user_config();
                         let channel = newState.member.guild.channels.cache.find(ch => ch.name === 'bot_commands');
                         if (!channel) console.log("no channel bot_commands found!!!")
@@ -60,7 +69,8 @@ class Capsrage {
                     let songInfo = await ytdl.getInfo(user_config[newState.member.user.id].song);
                     let song = {
                         title: songInfo.title,
-                        url: songInfo.video_url
+                        url: songInfo.video_url,
+                        start: user_config[newState.member.user.id].start
                     };
                     this.addSong(song, newState.channel);
             }
@@ -95,7 +105,7 @@ class Capsrage {
             return;
         }
         console.log(`playing ${song.title}`);
-        const dispatcher = this.queue.connection.play(ytdl(song.url, {filter: "audioonly"}));
+        const dispatcher = this.queue.connection.play(ytdl(song.url, {filter: "audioonly", begin: song.start}));
         this.queue.interval = setInterval(() => {
             this.queue.songs.shift();
             this.play(this.queue.songs[0]);
