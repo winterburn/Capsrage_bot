@@ -10,7 +10,7 @@
         "url": "https://github.com/winterburn/Capsrage_bot"
     },
     "dependencies": {
-        "@discordjs/opus": "^0.3.2",
+        "@discordjs/opus": "^0.8.0",
         "bufferutil": "^4.0.1",
         "discord.js": "^12.2.0",
         "erlpack": "github:discordapp/erlpack",
